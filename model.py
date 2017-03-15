@@ -20,6 +20,7 @@ def extract_feat(index, name):
     d_gtgram = delta(np.transpose(gtgram), 2)
     feat_vec = np.transpose(np.concatenate((mfcc_feat, d_mfcc_feat, np.transpose(gtgram), d_gtgram), 1))
     arma_feat_vec = np.zeros(feat_vec.shape, float)
+    ret = { 'gtgram': gtgram, 'arma': feat_vec}
     if arma:
         aux = 0
         for row in feat_vec.T:
@@ -37,10 +38,9 @@ def extract_feat(index, name):
             arma_feat_vec[:,aux] = np.copy(aux_vec)
             aux = aux + 1
 
-        return {'gtgram': gtgram, 'arma': arma_feat_vec}
-    else:
-        return
-            {'gtgram': gtgram, 'arma': feat_vec}
+        ret = {'gtgram': gtgram, 'arma': arma_feat_vec}
+    return ret
+
 
 def ibm_map(snr):
     aux = 0
@@ -70,7 +70,7 @@ def IBM(target, echo):
 
 input_mat = np.array([])
 target_mat = np.array([])
-for i in range(1, 5):
+for i in range(1, 1001):
     print(i)
     mix1 = extract_feat(str(i), 'mix1.wav')
     mix2 = extract_feat(str(i), 'mix2.wav')
@@ -93,5 +93,13 @@ for i in range(1, 5):
         input_mat = np.concatenate((input_mat, input_vec), 1)
         target_mat = np.concatenate((target_mat, ibm), 1)
 
+import os
+import hickle as hk1
+
+data = {'input': input_mat, 'targets': target_mat}
+#TODO put in name date, using AR model...etc....
+np.save('inputs_model1.npy', input_mat, allow_pickle=True)
+np.save('targets_model1.npy', input_mat, allow_pickle=True)
+print('finished')
 print(input_mat.shape)
 print(target_mat.shape)
