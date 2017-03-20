@@ -10,6 +10,9 @@ from keras.optimizers import SGD
 
 def load_data():
     print('loading data...')
+    input_mat = np.save('inputs_model1.npy', allow_pickle=True)
+    target_mat= np.save('targets_model1.npy', allow_pickle=True)
+    return (input_mat, target_mat)
 
 
 def create_model():

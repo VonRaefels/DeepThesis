@@ -2,13 +2,12 @@ mic1 = 1;
 mic2 = 2;
 FS = 16000;
 S = FS*2;
-N = 1000;
+N = 300;
 load 'Impulse_response_Acoustic_Lab_Bar-Ilan_University_(Reverberation_0.160s)_3-3-3-8-3-3-3/Impulse_response_Acoustic_Lab_Bar-Ilan_University_(Reverberation_0.160s)_3-3-3-8-3-3-3_1m_000.mat';
 h0 = impulse_response; 
 load 'Impulse_response_Acoustic_Lab_Bar-Ilan_University_(Reverberation_0.160s)_3-3-3-8-3-3-3/Impulse_response_Acoustic_Lab_Bar-Ilan_University_(Reverberation_0.160s)_3-3-3-8-3-3-3_1m_030.mat';
 h30 = impulse_response;
 factor = 0.35;
-parent_dir = 'data_timit/TRAIN';
 d = rdir('data_timit/TRAIN/**/*.WAV');
 speech = zeros(numel(d), S);
 for k=1:numel(d)
@@ -20,19 +19,20 @@ for k=1:numel(d)
     speech(k,1:l) = y(1:l)';
 end
 disp('writing data')
+indeces = zeros(2, N);
 for i = 1:N
     j = randi([1 numel(d)]);
     l = randi([1 numel(d)]);
     dir_i = d(j).folder;
     dir_j = d(l).folder;
-    while strcmp(dir_i, dir_j) == true
+    while strcmp(dir_i, dir_j) == true || ~isempty(mfind(indeces, [j ; l]))
         l = randi([1 numel(d)]);
         dir_j = d(l).folder;
         disp('same dir');
         disp(dir_i);
         disp(dir_j);
     end
-
+    indeces(:,i) = [j l]';
     target = speech(j,:);
     echo = factor*speech(l,:);
     %target = wgn(FS, 1, 0);
