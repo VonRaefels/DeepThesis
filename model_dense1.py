@@ -30,13 +30,28 @@ def create_model():
                   metrics=['accuracy'])
     return model
 
-def train_and_evaluate_model(X_train, Y_train, model):
+def train_and_evaluate_model(X_train, Y_train, model, epochs, val):
     print('training and evaluation')
-    model.fit(X_train, Y_train, batch_size=199, nb_epoch=500, verbose=1)
+    model.fit(X_train, Y_train, validation_split=val, batch_size=199, nb_epoch=epochs, verbose=1)
 
+def save_model(model, name):
+    model_json = model.to_json()
+    with open(name + ".json", "w") as json_file:
+        json_file.write(model_json)
 
+import sys
+import time
+# 1. name
+# 2. number of epochs
+# 3. percentage eval
+# python3 model_dense1.py dense1 100 0.2
 if __name__ == "__main__":
     print('Starting...')
+    save_name = sys.argv[1]
+    timestr = time.strftime("%Y%m%d-%H%M%S")
+    save_name = save_name + "_" + timestr
+    epochs = int(sys.argv[2])
+    val = float(sys.argv[3])
     X_train, Y_train = load_data()
     X_train = X_train.T
     Y_train = Y_train.T
@@ -44,6 +59,8 @@ if __name__ == "__main__":
     print(X_train.shape)
     print(Y_train.shape)
     model = create_model()
-    train_and_evaluate_model(X_train, Y_train, model)
+    train_and_evaluate_model(X_train, Y_train, model, epochs, val)
+    save_model(model, save_name)
+    model.save_weights(save_name + "_weights.h5")
     #n_folds = 1
     #skf = StratifiedKFold(labels, n_folds=n_folds, shuffle=True)

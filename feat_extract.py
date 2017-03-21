@@ -70,6 +70,7 @@ def IBM(target, echo):
     return np.ndarray.astype(np.apply_along_axis(ibm_map, 0, snr), int)
 
 import sys
+import time
 # 0. Number of directories
 # 1. main dir to scan
 # 2. arma 0/1
@@ -115,8 +116,9 @@ if __name__ == "__main__":
 
     data = {'input': input_mat, 'targets': target_mat}
     #TODO put in name date, using AR model...etc....
-    np.save('inputs_' + out_input + '.npy', input_mat, allow_pickle=True)
-    np.save('targets_' + out_targets + '.npy', target_mat, allow_pickle=True)
+    timestr = time.strftime("%Y%m%d-%H%M%S")
+    np.save('inputs_' + out_input + '_' + timestr + '.npy', input_mat, allow_pickle=True)
+    np.save('targets_' + out_targets + '_' + timestr + '.npy', target_mat, allow_pickle=True)
     print('finished')
     print(input_mat.shape)
     print(target_mat.shape)
