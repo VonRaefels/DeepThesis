@@ -60,7 +60,7 @@ if __name__ == "__main__":
     print(Y_train.shape)
     model = create_model()
     train_and_evaluate_model(X_train, Y_train, model, epochs, val)
-    save_model(model, save_name)
-    model.save_weights(save_name + "_weights.h5")
+    save_model(model, "./models/" + save_name)
+    model.save_weights("./models/" + save_name + "_weights.h5")
     #n_folds = 1
     #skf = StratifiedKFold(labels, n_folds=n_folds, shuffle=True)

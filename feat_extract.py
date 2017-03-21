@@ -12,6 +12,23 @@ LC = -8
 wlen = 0.02
 wstep = 0.01
 channels = 64
+stack = 1
+
+# Not circular for the moment, just take the last n equally
+def stack_feats(n, mat):
+    nr = mat.shape[0]
+    nc = mat.shape[1]
+    big_mat = np.zeros((nr*n, nc), float)
+    aux = mat.T
+    idx = 0
+    for row in aux:
+        for i in range(0, n):
+            j = i + idx
+            if j >= nc:
+                j = nc - 1
+            big_mat[i*nr:i*nr + nr, idx] = aux[j,:]
+        idx = idx + 1
+    return big_mat
 
 def extract_feat(index, name):
     rate, data = scipy.io.wavfile.read(main_dir + index + '/' + name)
@@ -40,6 +57,10 @@ def extract_feat(index, name):
             aux = aux + 1
 
         ret = {'gtgram': gtgram, 'arma': arma_feat_vec}
+
+    if stack > 1:
+        vec = stack_feats(stack, arma_feat_vec)
+        ret = {'gtgram': gtgram, 'arma': vec}
     return ret
 
 
@@ -69,6 +90,7 @@ def IBM(target, echo):
     snr = 10*np.log10(ratio)
     return np.ndarray.astype(np.apply_along_axis(ibm_map, 0, snr), int)
 
+
 import sys
 import time
 # 0. Number of directories
@@ -77,9 +99,11 @@ import time
 # 3. LC in db
 # 4. out input name
 # 5. out target name
-# python3 feat_extract.py 5 /home/jorge/Documents/data/ 1 -8 dense1 dense1
+# 6. stack
+# python3 feat_extract.py 5 /home/jorge/Documents/data/ 1 -8 dense1 dense1 2
 if __name__ == "__main__":
     print('Starting feature extraction...')
+    np.set_printoptions(threshold=np.inf)
     args = sys.argv
     N = int(args[1])
     main_dir = args[2]
@@ -87,6 +111,7 @@ if __name__ == "__main__":
     LC = int(args[4])
     out_input = args[5]
     out_targets = args[6]
+    stack = int(args[7])
 
     input_mat = np.array([])
     target_mat = np.array([])
@@ -103,7 +128,6 @@ if __name__ == "__main__":
         #print(mix1['arma'].shape)
         #print(ibm.shape)
         print('---------------------')
-        #np.set_printoptions(threshold=np.inf)
         #print(ibm)
         input_vec = np.concatenate((mix1['arma'], mix2['arma']), 0)
         if input_mat.size == 0:
@@ -117,8 +141,8 @@ if __name__ == "__main__":
     data = {'input': input_mat, 'targets': target_mat}
     #TODO put in name date, using AR model...etc....
     timestr = time.strftime("%Y%m%d-%H%M%S")
-    np.save('inputs_' + out_input + '_' + timestr + '.npy', input_mat, allow_pickle=True)
-    np.save('targets_' + out_targets + '_' + timestr + '.npy', target_mat, allow_pickle=True)
+    np.save('./feats/inputs_' + out_input + '_' + timestr + '.npy', input_mat, allow_pickle=True)
+    np.save('./feats/targets_' + out_targets + '_' + timestr + '.npy', target_mat, allow_pickle=True)
     print('finished')
     print(input_mat.shape)
     print(target_mat.shape)
