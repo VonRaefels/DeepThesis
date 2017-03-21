@@ -125,8 +125,8 @@ if __name__ == "__main__":
         echo = extract_feat(str(i), 'echo.wav')
 
         ibm = IBM(mic1_target, mic1_echo)
-        #print(mix1['arma'].shape)
-        #print(ibm.shape)
+        if stack > 1:
+            ibm = stack_feats(stack, ibm)
         print('---------------------')
         #print(ibm)
         input_vec = np.concatenate((mix1['arma'], mix2['arma']), 0)
