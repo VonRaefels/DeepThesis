@@ -1,4 +1,5 @@
 import gammatone.gtgram
+import gammatone.gtgram
 import scipy.io.wavfile
 from python_speech_features import mfcc
 from python_speech_features import delta
@@ -11,10 +12,12 @@ arma = True
 LC = -8
 wlen = 0.02
 wstep = 0.01
-channels = 64
+channels = 128
 stack = 1
 
-# Not circular for the moment, just take the last n equally
+# Not circular,
+# Attempting to take idx minus plus n/2
+# Only odd numbers
 def stack_feats(n, mat):
     nr = mat.shape[0]
     nc = mat.shape[1]
@@ -23,20 +26,29 @@ def stack_feats(n, mat):
     idx = 0
     for row in aux:
         for i in range(0, n):
-            j = i + idx
-            if j >= nc:
-                j = nc - 1
+            r = int(n/2)
+            j = i + idx - r
+            if idx < r:
+                j = j + r
+            elif idx > nc - r - 1:
+                j = j - r
             big_mat[i*nr:i*nr + nr, idx] = aux[j,:]
         idx = idx + 1
+    print(big_mat[:,0])
+    print(mat[:,2])
     return big_mat
 
 def extract_feat(index, name):
     rate, data = scipy.io.wavfile.read(main_dir + index + '/' + name)
-    gtgram = gammatone.gtgram.gtgram(data, rate, wlen, wstep, channels, 20)
-    mfcc_feat = mfcc(data ,samplerate=16000, winlen=wlen, winstep=wstep, numcep=13, nfilt=26,nfft=512,lowfreq=20,highfreq=None,preemph=0.97, ceplifter=22,appendEnergy=True)
+    gtgram = gammatone.gtgram.gtgram(data, rate, wlen, wstep, channels, 50)
+    gtgramx = gammatone.gtgram.gtgram_xe(data, rate, channels, 50)
+    if name == 'mix1.wav':
+        np.savetxt('gtx.out', gtgramx, delimiter=',')
+    mfcc_feat = mfcc(data ,samplerate=16000, winlen=wlen, winstep=wstep, numcep=13, nfilt=26,nfft=512,lowfreq=50,highfreq=None,preemph=0.97, ceplifter=22,appendEnergy=True)
+
     d_mfcc_feat = delta(mfcc_feat, 2)
     d_gtgram = delta(np.transpose(gtgram), 2)
-    feat_vec = np.transpose(np.concatenate((mfcc_feat, d_mfcc_feat, np.transpose(gtgram), d_gtgram), 1))
+    feat_vec = np.transpose(np.concatenate((np.transpose(gtgram), mfcc_feat, d_mfcc_feat, d_gtgram), 1))
     arma_feat_vec = np.zeros(feat_vec.shape, float)
     ret = { 'gtgram': gtgram, 'arma': feat_vec}
     if arma:
@@ -100,7 +112,7 @@ import time
 # 4. out input name
 # 5. out target name
 # 6. stack
-# python3 feat_extract.py 5 /home/jorge/Documents/data/ 1 -8 dense1 dense1 2
+# python3 feat_extract.py 5 /home/jorge/Documents/data/ 1 -8 dense1 dense1 3
 if __name__ == "__main__":
     print('Starting feature extraction...')
     np.set_printoptions(threshold=np.inf)
@@ -125,6 +137,7 @@ if __name__ == "__main__":
         echo = extract_feat(str(i), 'echo.wav')
 
         ibm = IBM(mic1_target, mic1_echo)
+        np.savetxt('ibm.out', ibm, delimiter=',')
         if stack > 1:
             ibm = stack_feats(stack, ibm)
         print('---------------------')
