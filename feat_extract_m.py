@@ -90,17 +90,23 @@ import time
 # 4. out input name
 # 5. out target name
 # 6. stack
-# python3 feat_extract.py 5 /home/jorge/Documents/data/ 1 -8 dense1 dense1 3
+# 7. test/train
+# python3 feat_extract_m.py 5 /home/jorge/Documents/data/ 1 dense1 dense1 3 test
 if __name__ == "__main__":
     print('Starting feature extraction...')
     np.set_printoptions(threshold=np.inf)
-    args = sys.arg
-v    N = int(args[1])
+    args = sys.argv
+    N = int(args[1])
     main_dir = args[2]
     arma = (args[3] == '1')
     out_input = args[4]
     out_targets = args[5]
     stack = int(args[6])
+    mode = args[7]
+
+
+    if mode == 'test':
+        main_dir = '/home/jorge/Documents/data_test/'
 
     input_mat = np.array([])
     target_mat = np.array([])
@@ -130,9 +136,12 @@ v    N = int(args[1])
 
     data = {'input': input_mat, 'targets': target_mat}
     #TODO put in name date, using AR model...etc....
+    dir = './feats/'
+    if mode == 'test':
+        dir = './feats_test/'
     timestr = time.strftime("%Y%m%d-%H%M%S")
-    np.save('./feats/inputs_' + out_input + '_' + timestr + '.npy', input_mat, allow_pickle=True)
-    np.save('./feats/targets_' + out_targets + '_' + timestr + '.npy', target_mat, allow_pickle=True)
+    np.save(dir + 'inputs_' + out_input + '_' + timestr + '.npy', input_mat, allow_pickle=True)
+    np.save(dir + 'targets_' + out_targets + '_' + timestr + '.npy', target_mat, allow_pickle=True)
     print('finished')
     print(input_mat.shape)
     print(target_mat.shape)

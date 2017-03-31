@@ -1,0 +1,1 @@
+python3 feat_extract_m.py 1000 /home/jorge/Documents/data/ 0 dense1 dense1 1 test

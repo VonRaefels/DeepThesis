@@ -1,5 +1,6 @@
 from keras.models import Sequential
 from keras.layers import Dense, Activation
+from keras.callbacks import CSVLogger
 
 import numpy as np
 np.random.seed(123)
@@ -10,18 +11,18 @@ from keras.optimizers import SGD
 
 def load_data():
     print('loading data...')
-    input_mat = np.load('inputs_dense1.npy', allow_pickle=True)
-    target_mat= np.load('targets_dense1.npy', allow_pickle=True)
+    input_mat = np.load('feats/inputs.npy', allow_pickle=True)
+    target_mat= np.load('feats/targets.npy', allow_pickle=True)
     return (input_mat, target_mat)
 
 
 def create_model():
     print('-----creating model-----')
     model = Sequential()
-    model.add(Dense(1024, batch_input_shape=(None, 308), activation='relu'))
+    model.add(Dense(1024, batch_input_shape=(None, 748), activation='relu'))
     model.add(Dense(1024, activation='relu'))
     model.add(Dense(1024, activation='relu'))
-    model.add(Dense(64, activation='sigmoid'))
+    model.add(Dense(128, activation='sigmoid'))
 
 
     sgd = SGD(lr=0.003, decay=0.0)
@@ -30,9 +31,10 @@ def create_model():
                   metrics=['accuracy'])
     return model
 
-def train_and_evaluate_model(X_train, Y_train, model, epochs, val):
+def train_and_evaluate_model(X_train, Y_train, model, epochs, val, save_name):
     print('training and evaluation')
-    model.fit(X_train, Y_train, validation_split=val, batch_size=199, nb_epoch=epochs, verbose=1)
+    csv_logger = CSVLogger(save_name + '.log')
+    model.fit(X_train, Y_train, validation_split=val, batch_size=200, nb_epoch=epochs, verbose=1, callbacks=[csv_logger])
 
 def save_model(model, name):
     model_json = model.to_json()
@@ -59,7 +61,7 @@ if __name__ == "__main__":
     print(X_train.shape)
     print(Y_train.shape)
     model = create_model()
-    train_and_evaluate_model(X_train, Y_train, model, epochs, val)
+    train_and_evaluate_model(X_train, Y_train, model, epochs, val, save_name)
     save_model(model, "./models/" + save_name)
     model.save_weights("./models/" + save_name + "_weights.h5")
     #n_folds = 1
